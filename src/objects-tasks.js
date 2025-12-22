@@ -11,14 +11,9 @@
  *
  * @param {Object} obj - an object to copy
  * @return {Object}
- *
- * @example
- *    shallowCopy({a: 2, b: 5}) => {a: 2, b: 5}
- *    shallowCopy({a: 2, b: { a: [1, 2, 3]}}) => {a: 2, b: { a: [1, 2, 3]}}
- *    shallowCopy({}) => {}
  */
-function shallowCopy(/* obj */) {
-  throw new Error('Not implemented');
+function shallowCopy(obj) {
+  return { ...obj };
 }
 
 /**
@@ -27,13 +22,17 @@ function shallowCopy(/* obj */) {
  *
  * @param {Object[]} objects - The array of objects to merge
  * @return {Object} - The merged object
- *
- * @example
- *    mergeObjects([{a: 1, b: 2}, {b: 3, c: 5}]) => {a: 1, b: 5, c: 5}
- *    mergeObjects([]) => {}
  */
-function mergeObjects(/* objects */) {
-  throw new Error('Not implemented');
+function mergeObjects(objects) {
+  const result = {};
+
+  objects.forEach((o) => {
+    Object.entries(o).forEach(([k, v]) => {
+      result[k] = (result[k] || 0) + v;
+    });
+  });
+
+  return result;
 }
 
 /**
@@ -42,15 +41,15 @@ function mergeObjects(/* objects */) {
  * @param {Object} obj - The object from which to remove the property
  * @param {string[]} keys - The keys of the properties to remove
  * @return {Object} - The object with the specified key removed
- *
- * @example
- *    removeProperties({a: 1, b: 2, c: 3}, ['b', 'c']) => {a: 1}
- *    removeProperties({a: 1, b: 2, c: 3}, ['d', 'e']) => {a: 1, b: 2, c: 3}
- *    removeProperties({name: 'John', age: 30, city: 'New York'}, ['age']) => {name: 'John', city: 'New York'}
- *
  */
-function removeProperties(/* obj, keys */) {
-  throw new Error('Not implemented');
+function removeProperties(obj, keys) {
+  const target = obj;
+
+  keys.forEach((k) => {
+    delete target[k];
+  });
+
+  return target;
 }
 
 /**
@@ -60,13 +59,16 @@ function removeProperties(/* obj, keys */) {
  * @param {Object} obj1 - The first object to compare
  * @param {Object} obj2 - The second object to compare
  * @return {boolean} - True if the objects are equal, false otherwise
- *
- * @example
- *    compareObjects({a: 1, b: 2}, {a: 1, b: 2}) => true
- *    compareObjects({a: 1, b: 2}, {a: 1, b: 3}) => false
  */
-function compareObjects(/* obj1, obj2 */) {
-  throw new Error('Not implemented');
+function compareObjects(obj1, obj2) {
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) return false;
+
+  return keys1.every(
+    (k) => Object.prototype.hasOwnProperty.call(obj2, k) && obj1[k] === obj2[k]
+  );
 }
 
 /**
@@ -75,13 +77,9 @@ function compareObjects(/* obj1, obj2 */) {
  *
  * @param {Object} obj - The object to check
  * @return {boolean} - True if the object is empty, false otherwise
- *
- * @example
- *    isEmptyObject({}) => true
- *    isEmptyObject({a: 1}) => false
  */
-function isEmptyObject(/* obj */) {
-  throw new Error('Not implemented');
+function isEmptyObject(obj) {
+  return Object.keys(obj).length === 0;
 }
 
 /**
@@ -89,19 +87,9 @@ function isEmptyObject(/* obj */) {
  *
  * @param {Object} obj - The source object to make immutable
  * @return {Object} - The immutable version of the object
- *
- * @example
- *    const obj = {a: 1, b: 2};
- *    const immutableObj = makeImmutable(obj);
- *    immutableObj.a = 5;
- *    console.log(immutableObj) => {a: 1, b: 2}
- *    delete immutableObj.a;
- *    console.log(immutableObj) => {a: 1, b: 2}
- *    immutableObj.newProp = 'new';
- *    console.log(immutableObj) => {a: 1, b: 2}
  */
-function makeImmutable(/* obj */) {
-  throw new Error('Not implemented');
+function makeImmutable(obj) {
+  return Object.freeze(obj);
 }
 
 /**
@@ -109,13 +97,18 @@ function makeImmutable(/* obj */) {
  *
  * @param {Object} lettersObject - An object where keys are letters and values are arrays of positions
  * @return {string} - The constructed word
- *
- * @example
- *    makeWord({ a: [0, 1], b: [2, 3], c: [4, 5] }) => 'aabbcc'
- *    makeWord({ H:[0], e: [1], l: [2, 3, 8], o: [4, 6], W:[5], r:[7], d:[9]}) => 'HelloWorld'
  */
-function makeWord(/* lettersObject */) {
-  throw new Error('Not implemented');
+function makeWord(lettersObject) {
+  const pairs = [];
+
+  Object.entries(lettersObject).forEach(([ch, positions]) => {
+    positions.forEach((pos) => {
+      pairs.push([pos, ch]);
+    });
+  });
+
+  pairs.sort((a, b) => a[0] - b[0]);
+  return pairs.map((p) => p[1]).join('');
 }
 
 /**
@@ -127,13 +120,35 @@ function makeWord(/* lettersObject */) {
  *
  * @param {number[]} queue - The array representing the bills each customer pays with
  * @return {boolean} - True if the seller can sell tickets to everyone, false otherwise
- *
- * @example
- *    sellTickets([25, 25, 50]) => true
- *    sellTickets([25, 100]) => false (The seller does not have enough money to give change.)
  */
-function sellTickets(/* queue */) {
-  throw new Error('Not implemented');
+function sellTickets(queue) {
+  let bill25 = 0;
+  let bill50 = 0;
+
+  for (let i = 0; i < queue.length; i += 1) {
+    const bill = queue[i];
+
+    if (bill === 25) {
+      bill25 += 1;
+    } else if (bill === 50) {
+      if (bill25 === 0) return false;
+      bill25 -= 1;
+      bill50 += 1;
+    } else if (bill === 100) {
+      if (bill50 > 0 && bill25 > 0) {
+        bill50 -= 1;
+        bill25 -= 1;
+      } else if (bill25 >= 3) {
+        bill25 -= 3;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /**
@@ -142,15 +157,15 @@ function sellTickets(/* queue */) {
  * @param {number} width
  * @param {number} height
  * @return {Object}
- *
- * @example
- *    const r = new Rectangle(10,20);
- *    console.log(r.width);       // => 10
- *    console.log(r.height);      // => 20
- *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+
+function Rectangle(width, height) {
+  this.width = width;
+  this.height = height;
+
+  this.getArea = function getArea() {
+    return this.width * this.height;
+  };
 }
 
 /**
@@ -158,13 +173,9 @@ function Rectangle(/* width, height */) {
  *
  * @param {Object} obj
  * @return {string}
- *
- * @example
- *    [1,2,3]   =>  '[1,2,3]'
- *    { height: 10, width: 20 } => '{"height":10,"width":20}'
  */
-function getJSON(/* obj */) {
-  throw new Error('Not implemented');
+function getJSON(obj) {
+  return JSON.stringify(obj);
 }
 
 /**
@@ -173,170 +184,203 @@ function getJSON(/* obj */) {
  * @param {Object} proto
  * @param {string} json
  * @return {Object}
- *
- * @example
- *    const r = fromJSON(Circle.prototype, '{"radius":10}');
- *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  const obj = JSON.parse(json);
+  Object.setPrototypeOf(obj, proto);
+  return obj;
 }
 
 /**
  * Sorts the specified array by country name first and city name
  * (if countries are equal) in ascending order.
  *
- * @typedef {{
- * country: string,
- * city: string
- * }} GeoEntity
- *
- * @param {GeoEntity[]} arr
- * @return {GeoEntity[]}
- *
- * @example
- *    [
- *      { country: 'Russia',  city: 'Moscow' },
- *      { country: 'Belarus', city: 'Minsk' },
- *      { country: 'Poland',  city: 'Warsaw' },
- *      { country: 'Russia',  city: 'Saint Petersburg' },
- *      { country: 'Poland',  city: 'Krakow' },
- *      { country: 'Belarus', city: 'Brest' }
- *    ]
- *                      =>
- *    [
- *      { country: 'Belarus', city: 'Brest' },
- *      { country: 'Belarus', city: 'Minsk' },
- *      { country: 'Poland',  city: 'Krakow' },
- *      { country: 'Poland',  city: 'Warsaw' },
- *      { country: 'Russia',  city: 'Moscow' },
- *      { country: 'Russia',  city: 'Saint Petersburg' }
- *    ]
+ * @param {Array<{country: string, city: string}>} arr
+ * @return {Array<{country: string, city: string}>}
  */
-function sortCitiesArray(/* arr */) {
-  throw new Error('Not implemented');
+function sortCitiesArray(arr) {
+  return arr.sort((a, b) => {
+    if (a.country < b.country) return -1;
+    if (a.country > b.country) return 1;
+    if (a.city < b.city) return -1;
+    if (a.city > b.city) return 1;
+    return 0;
+  });
 }
 
 /**
  * Groups elements of the specified array by key.
  * Returns multimap of keys extracted from array elements via keySelector callback
  * and values extracted via valueSelector callback.
- * See: https://en.wikipedia.org/wiki/Multimap
  *
- * @typedef {{
- * country: string,
- * city: string
- * }} GeoEntity
- *
- * @param {GeoEntity[]} array
- * @param {(item: GeoEntity) => string} keySelector
- * @param {(item: GeoEntity) => string} valueSelector
- * @return {Map<string, string[]>}
- *
- * @example
- *   group([
- *      { country: 'Belarus', city: 'Brest' },
- *      { country: 'Russia', city: 'Omsk' },
- *      { country: 'Russia', city: 'Samara' },
- *      { country: 'Belarus', city: 'Grodno' },
- *      { country: 'Belarus', city: 'Minsk' },
- *      { country: 'Poland', city: 'Lodz' }
- *     ],
- *     item => item.country,
- *     item => item.city
- *   )
- *            =>
- *   Map {
- *    "Belarus" => ["Brest", "Grodno", "Minsk"],
- *    "Russia" => ["Omsk", "Samara"],
- *    "Poland" => ["Lodz"]
- *   }
+ * @param {Array<any>} array
+ * @param {(item:any)=>string} keySelector
+ * @param {(item:any)=>any} valueSelector
+ * @return {Map<string, any[]>}
  */
-function group(/* array, keySelector, valueSelector */) {
-  throw new Error('Not implemented');
+function group(array, keySelector, valueSelector) {
+  const map = new Map();
+
+  array.forEach((item) => {
+    const key = keySelector(item);
+    const value = valueSelector(item);
+
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(value);
+  });
+
+  return map;
 }
 
-/**
- * Css selectors builder
- *
- * Each complex selector can consists of type, id, class, attribute, pseudo-class
- * and pseudo-element selectors:
- *
- *    element#id.class[attr]:pseudoClass::pseudoElement
- *              \----/\----/\----------/
- *              Can be several occurrences
- *
- * All types of selectors can be combined using the combination ' ','+','~','>' .
- *
- * The task is to design a single class, independent classes or classes hierarchy
- * and implement the functionality to build the css selectors using the provided cssSelectorBuilder.
- * Each selector should have the stringify() method to output the string representation
- * according to css specification.
- *
- * Provided cssSelectorBuilder should be used as facade only to create your own classes,
- * for example the first method of cssSelectorBuilder can be like this:
- *   element: function(value) {
- *       return new MySuperBaseElementSelector(...)...
- *   },
- *
- * The design of class(es) is totally up to you, but try to make it as simple,
- * clear and readable as possible.
- *
- * @example
- *
- *  const builder = cssSelectorBuilder;
- *
- *  builder.id('main').class('container').class('editable').stringify()
- *    => '#main.container.editable'
- *
- *  builder.element('a').attr('href$=".png"').pseudoClass('focus').stringify()
- *    => 'a[href$=".png"]:focus'
- *
- *  builder.combine(
- *      builder.element('div').id('main').class('container').class('draggable'),
- *      '+',
- *      builder.combine(
- *          builder.element('table').id('data'),
- *          '~',
- *           builder.combine(
- *               builder.element('tr').pseudoClass('nth-of-type(even)'),
- *               ' ',
- *               builder.element('td').pseudoClass('nth-of-type(even)')
- *           )
- *      )
- *  ).stringify()
- *    => 'div#main.container.draggable + table#data ~ tr:nth-of-type(even)   td:nth-of-type(even)'
- *
- *  For more examples see unit tests.
- */
+/* ============================== cssSelectorBuilder ============================== */
+
+const ORDER_ERROR =
+  'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element';
+const DUPLICATE_ERROR =
+  'Element, id and pseudo-element should not occur more than one time inside the selector';
+
+const PART_ORDER = {
+  element: 0,
+  id: 1,
+  class: 2,
+  attr: 3,
+  pseudoClass: 4,
+  pseudoElement: 5,
+};
+
+function buildToken(type, value) {
+  if (type === 'element') return `${value}`;
+  if (type === 'id') return `#${value}`;
+  if (type === 'class') return `.${value}`;
+  if (type === 'attr') return `[${value}]`;
+  if (type === 'pseudoClass') return `:${value}`;
+  return `::${value}`; // pseudoElement
+}
+
+function cloneUsed(used) {
+  return {
+    element: used.element,
+    id: used.id,
+    pseudoElement: used.pseudoElement,
+  };
+}
+
+function createSelector(state) {
+  const selectorState = state;
+
+  function addPart(type, value) {
+    const order = PART_ORDER[type];
+
+    if (order < selectorState.lastOrder) {
+      throw new Error(ORDER_ERROR);
+    }
+
+    if (
+      (type === 'element' && selectorState.used.element) ||
+      (type === 'id' && selectorState.used.id) ||
+      (type === 'pseudoElement' && selectorState.used.pseudoElement)
+    ) {
+      throw new Error(DUPLICATE_ERROR);
+    }
+
+    const nextUsed = cloneUsed(selectorState.used);
+    if (type === 'element') nextUsed.element = true;
+    if (type === 'id') nextUsed.id = true;
+    if (type === 'pseudoElement') nextUsed.pseudoElement = true;
+
+    const token = buildToken(type, value);
+
+    return createSelector({
+      parts: selectorState.parts.concat(token),
+      lastOrder: order,
+      used: nextUsed,
+    });
+  }
+
+  return {
+    element(value) {
+      return addPart('element', value);
+    },
+    id(value) {
+      return addPart('id', value);
+    },
+    class(value) {
+      return addPart('class', value);
+    },
+    attr(value) {
+      return addPart('attr', value);
+    },
+    pseudoClass(value) {
+      return addPart('pseudoClass', value);
+    },
+    pseudoElement(value) {
+      return addPart('pseudoElement', value);
+    },
+    stringify() {
+      return selectorState.parts.join('');
+    },
+  };
+}
+
+function createCombinedSelector(selector1, combinator, selector2) {
+  return {
+    stringify() {
+      return `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+    },
+  };
+}
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    return createSelector({
+      parts: [],
+      lastOrder: -1,
+      used: { element: false, id: false, pseudoElement: false },
+    }).element(value);
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    return createSelector({
+      parts: [],
+      lastOrder: -1,
+      used: { element: false, id: false, pseudoElement: false },
+    }).id(value);
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    return createSelector({
+      parts: [],
+      lastOrder: -1,
+      used: { element: false, id: false, pseudoElement: false },
+    }).class(value);
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    return createSelector({
+      parts: [],
+      lastOrder: -1,
+      used: { element: false, id: false, pseudoElement: false },
+    }).attr(value);
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    return createSelector({
+      parts: [],
+      lastOrder: -1,
+      used: { element: false, id: false, pseudoElement: false },
+    }).pseudoClass(value);
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    return createSelector({
+      parts: [],
+      lastOrder: -1,
+      used: { element: false, id: false, pseudoElement: false },
+    }).pseudoElement(value);
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    return createCombinedSelector(selector1, combinator, selector2);
   },
 };
 
