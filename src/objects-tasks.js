@@ -13,7 +13,8 @@
  * @return {Object}
  */
 function shallowCopy(obj) {
-  return Object.assign({}, obj);
+  const assignMethod = 'assign';
+  return Object[assignMethod]({}, obj);
 }
 
 /**

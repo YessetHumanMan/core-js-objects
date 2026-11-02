@@ -14,8 +14,5 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2024,
   },
-  rules: {
-    'prefer-object-spread': 'off',
-  },
   noInlineConfig: true,
 };
